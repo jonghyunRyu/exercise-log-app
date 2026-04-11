@@ -1,98 +1,164 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { FlatList, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { ExerciseCard } from '@/components/exercise-card';
+import { EmptyState } from '@/components/empty-state';
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
+import { useExerciseLog } from '@/contexts/exercise-log-context';
+import { filterLogsByDate, getTodayString } from '@/services/date-utils';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { Spacing, Radius, FontSize, FontWeight, SemanticColors, Opacity } from '@/constants/design-tokens';
+import type { ExerciseLog } from '@/types/exercise';
+import { useState } from 'react';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: 테스트중입니다</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const { state, deleteLog } = useExerciseLog();
+  const router = useRouter();
+  const bgColor = useThemeColor({}, 'background');
+  const tint = useThemeColor({}, 'tint');
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
+  const today = getTodayString();
+  const todayLogs = filterLogsByDate(state.logs, today);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+
+  const totalSets = todayLogs.reduce((sum, log) => sum + log.sets.length, 0);
+  const totalVolume = todayLogs.reduce(
+    (sum, log) => sum + log.sets.reduce((s, set) => s + set.reps * set.weight, 0), 0
+  );
+
+  const handleEdit = (log: ExerciseLog) => {
+    router.push({ pathname: '/log', params: { editId: log.id } });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (deleteTarget) {
+      await deleteLog(deleteTarget);
+      setDeleteTarget(null);
+    }
+  };
+
+  if (state.isLoading) {
+    return (
+      <ThemedView style={styles.center}>
+        <ThemedText style={styles.loadingText}>로딩 중...</ThemedText>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    );
+  }
+
+  const ListHeader = () => (
+    <View style={styles.headerSection}>
+      <View style={styles.logoRow}>
+        <ThemedText style={styles.logo}>FitLog</ThemedText>
+        <ThemedText style={styles.greeting}>💪</ThemedText>
+      </View>
+
+      {todayLogs.length > 0 && (
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <ThemedText style={[styles.statValue, { color: tint }]}>{todayLogs.length}</ThemedText>
+            <ThemedText style={styles.statLabel}>운동</ThemedText>
+          </View>
+          <View style={styles.statCard}>
+            <ThemedText style={[styles.statValue, { color: tint }]}>{totalSets}</ThemedText>
+            <ThemedText style={styles.statLabel}>세트</ThemedText>
+          </View>
+          <View style={styles.statCard}>
+            <ThemedText style={[styles.statValue, { color: tint }]}>
+              {totalVolume > 0 ? totalVolume.toLocaleString() : '0'}
+            </ThemedText>
+            <ThemedText style={styles.statLabel}>볼륨(kg)</ThemedText>
+          </View>
+        </View>
+      )}
+
+      {todayLogs.length > 0 && (
+        <ThemedText style={styles.sectionTitle}>오늘의 기록</ThemedText>
+      )}
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]} edges={['top']}>
+      {todayLogs.length === 0 ? (
+        <>
+          <ListHeader />
+          <EmptyState
+            message="오늘 아직 운동 기록이 없습니다"
+            actionLabel="운동 기록하기"
+            onAction={() => router.push('/log')}
+          />
+        </>
+      ) : (
+        <FlatList
+          data={todayLogs}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={ListHeader}
+          renderItem={({ item }) => (
+            <View style={styles.cardWrapper}>
+              <ExerciseCard log={item} onEdit={handleEdit} onDelete={(id) => setDeleteTarget(id)} />
+            </View>
+          )}
+          contentContainerStyle={styles.list}
+        />
+      )}
+
+      <DeleteConfirmDialog
+        visible={deleteTarget !== null}
+        message="이 운동 기록을 삭제하시겠습니까?"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteTarget(null)}
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: { flex: 1 },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  loadingText: { fontSize: FontSize.lg, opacity: Opacity.muted },
+  headerSection: {
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  logoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    justifyContent: 'space-between',
+    minHeight: 44,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  logo: {
+    fontSize: FontSize['5xl'],
+    fontWeight: FontWeight.black,
+    letterSpacing: -1,
+    lineHeight: 40,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  greeting: { fontSize: FontSize['4xl'], lineHeight: 36 },
+  statsRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.xl,
   },
+  statCard: {
+    flex: 1,
+    backgroundColor: SemanticColors.surfaceSubtle,
+    borderRadius: Radius.lg,
+    paddingVertical: Spacing.lg,
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  statValue: { fontSize: FontSize['3xl'], fontWeight: FontWeight.extrabold },
+  statLabel: { fontSize: FontSize.sm, opacity: Opacity.muted },
+  sectionTitle: {
+    fontSize: FontSize['2xl'],
+    fontWeight: FontWeight.bold,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.xs,
+  },
+  list: { paddingBottom: Spacing.xl },
+  cardWrapper: { paddingHorizontal: Spacing.xl, paddingVertical: Spacing.sm },
 });
