@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ExerciseSelector } from '@/components/exercise-selector';
+import { RestTimer } from '@/components/rest-timer';
+import { SetInput } from '@/components/set-input';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { ExerciseSelector } from '@/components/exercise-selector';
-import { SetInput } from '@/components/set-input';
+import { FontSize, FontWeight, Radius, SemanticColors, Spacing } from '@/constants/design-tokens';
 import { useExerciseLog } from '@/contexts/exercise-log-context';
-import { validateExerciseLog } from '@/services/validation';
-import { getTodayString } from '@/services/date-utils';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { Spacing, Radius, FontSize, FontWeight, SemanticColors } from '@/constants/design-tokens';
+import { getTodayString } from '@/services/date-utils';
+import { validateExerciseLog } from '@/services/validation';
 import type { ExerciseSet, ValidationResult } from '@/types/exercise';
 
 export default function LogScreen() {
@@ -101,9 +102,11 @@ export default function LogScreen() {
             <SetInput key={i} set={set} index={i} onChange={handleSetChange} onRemove={handleRemoveSet} errors={errors.sets?.[i]} />
           ))}
         </ThemedView>
+
       </ScrollView>
 
       <ThemedView style={styles.footer}>
+        <RestTimer />
         <TouchableOpacity style={[styles.saveButton, { backgroundColor: tint }]} onPress={handleSave} activeOpacity={0.7}>
           <ThemedText style={styles.saveText}>{isEditMode ? '수정 완료' : '저장'}</ThemedText>
         </TouchableOpacity>
@@ -123,7 +126,7 @@ const styles = StyleSheet.create({
   setsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   sectionTitle: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, opacity: 0.7 },
   addSetText: { fontSize: FontSize.md, fontWeight: FontWeight.semibold },
-  footer: { padding: Spacing.xl, paddingBottom: Spacing.sm },
+  footer: { padding: Spacing.xl, paddingBottom: Spacing.sm, gap: Spacing.md },
   saveButton: { paddingVertical: Spacing.lg, borderRadius: Radius.lg, alignItems: 'center' },
   saveText: { color: SemanticColors.white, fontSize: FontSize.xl, fontWeight: FontWeight.bold },
 });
