@@ -15,7 +15,7 @@ export function RestTimer() {
   const tint = useThemeColor({}, 'tint');
 
   useEffect(() => {
-    if (!isRunning || remaining <= 0) return;
+    if (!isRunning) return;
 
     intervalRef.current = setInterval(() => {
       setRemaining((prev) => {

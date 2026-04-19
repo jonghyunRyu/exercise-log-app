@@ -1,13 +1,13 @@
+import { FontSize, FontWeight, Opacity, SemanticColors } from '@/constants/design-tokens';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  Easing,
+    Easing,
+    useAnimatedStyle,
+    useSharedValue,
+    withDelay,
+    withTiming,
 } from 'react-native-reanimated';
-import { FontSize, FontWeight, SemanticColors, Opacity } from '@/constants/design-tokens';
 
 interface SplashProps {
   onFinish: () => void;
@@ -32,6 +32,7 @@ export function Splash({ onFinish }: SplashProps) {
     }, 2000);
 
     return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const logoStyle = useAnimatedStyle(() => ({

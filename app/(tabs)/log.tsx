@@ -35,7 +35,7 @@ export default function LogScreen() {
         setSets(existing.sets.map((s) => ({ ...s })));
       }
     }
-  }, [params.editId]);
+  }, [params.editId, state.logs]);
 
   const handleSetChange = (index: number, updated: ExerciseSet) => {
     setSets(sets.map((s, i) => (i === index ? updated : s)));
