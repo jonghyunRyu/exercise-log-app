@@ -1,8 +1,8 @@
-import { StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { FontSize, FontWeight, Opacity, Radius, SemanticColors, Spacing } from '@/constants/design-tokens';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { Spacing, Radius, FontSize, FontWeight, SemanticColors, Opacity } from '@/constants/design-tokens';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 interface EmptyStateProps {
   message: string;
@@ -15,7 +15,6 @@ export function EmptyState({ message, actionLabel, onAction }: EmptyStateProps) 
 
   return (
     <ThemedView style={styles.container}>
-      <ThemedText style={styles.emoji}>🏋️</ThemedText>
       <ThemedText style={styles.message}>{message}</ThemedText>
       {actionLabel && onAction && (
         <TouchableOpacity style={[styles.button, { backgroundColor: tint }]} onPress={onAction} activeOpacity={0.7}>

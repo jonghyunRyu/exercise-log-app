@@ -1,16 +1,16 @@
-import { FlatList, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { FlatList, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
+import { EmptyState } from '@/components/empty-state';
+import { ExerciseCard } from '@/components/exercise-card';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { ExerciseCard } from '@/components/exercise-card';
-import { EmptyState } from '@/components/empty-state';
-import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
+import { FontSize, FontWeight, Opacity, Radius, SemanticColors, Spacing } from '@/constants/design-tokens';
 import { useExerciseLog } from '@/contexts/exercise-log-context';
-import { filterLogsByDate, getTodayString } from '@/services/date-utils';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { Spacing, Radius, FontSize, FontWeight, SemanticColors, Opacity } from '@/constants/design-tokens';
+import { filterLogsByDate, getTodayString } from '@/services/date-utils';
 import type { ExerciseLog } from '@/types/exercise';
 import { useState } from 'react';
 
@@ -52,7 +52,6 @@ export default function HomeScreen() {
     <View style={styles.headerSection}>
       <View style={styles.logoRow}>
         <ThemedText style={styles.logo}>FitLog</ThemedText>
-        <ThemedText style={styles.greeting}>💪</ThemedText>
       </View>
 
       {todayLogs.length > 0 && (
